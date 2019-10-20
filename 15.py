@@ -23,6 +23,11 @@ class State(object):
         self.avail = set(range(1, 10))
         self.taken = [set() for _ in range(2)]
 
+    def __str__(self):
+        onmove = self.onmove
+        opp = 1 - onmove
+        return "*" + str(self.taken[onmove]) + "\n" + str(self.taken[opp])
+
     def won(self, side):
         taken = self.taken[side]
         for combo in choose(taken, 3):
@@ -31,33 +36,52 @@ class State(object):
         return False
 
     def move(self, p):
+        onmove = self.onmove
+        self.onmove = 1 - onmove
         assert p in self.avail
         self.avail.remove(p)
-        onmove = self.onmove
+        assert p not in self.taken[onmove]
         self.taken[onmove].add(p)
-        self.onmove = 1 - onmove
 
     def unmove(self, p):
         onmove = 1 - self.onmove
+        self.onmove = onmove
         assert p in self.taken[onmove]
         self.taken[onmove].remove(p)
+        assert p not in self.avail
         self.avail.add(p)
-        self.onmove = onmove
 
-    def negamax(self):
+    def negamax(self, prune=True):
         # Draw if no pieces remain
         if len(self.avail) == 0:
-            return 0
+            return (0, None)
         onmove = self.onmove
         result = -1
-        for p in self.avail:
-            self.move(p)
+        move = None
+        for m in set(self.avail):
+            self.move(m)
             if self.won(onmove):
-                result = 1
+                r = 1
             else:
-                result = max(result, -self.negamax())
-            self.unmove(p)
-        return result
+                r, _ = self.negamax(prune=prune)
+                r = -r
+            self.unmove(m)
+            if r >= result:
+                move = m
+                result = r
+                if prune and result == 1:
+                    return (result, move)
+        assert move != None
+        return (result, move)
+
+def play():
+    game = State()
+    while True:
+        r, m = game.negamax()
+        print(r, m)
+        if m == None:
+            break
+        game.move(m)
 
 game = State()
-print(game.negamax())
+print(game.negamax(prune=False))
