@@ -22,6 +22,7 @@ class State(object):
         self.n = n
         self.k = k
         self.t = t
+        self.winval = n * k + 1
         self.onmove = 0
         self.avail = set(range(1, n+1))
         self.taken = [set() for _ in range(2)]
@@ -59,12 +60,12 @@ class State(object):
         if len(self.avail) == 0:
             return (0, None)
         onmove = self.onmove
-        result = -1
+        result = -self.winval
         move = None
         for m in set(self.avail):
             self.move(m)
             if self.won(onmove):
-                r = 1
+                r = self.winval
             else:
                 r, _ = self.negamax(prune=prune)
                 r = -r
@@ -72,7 +73,7 @@ class State(object):
             if r >= result:
                 move = m
                 result = r
-                if prune and result == 1:
+                if prune and result == self.winval:
                     return (result, move)
         assert move != None
         return (result, move)
