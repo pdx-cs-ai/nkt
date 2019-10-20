@@ -55,19 +55,37 @@ class State(object):
         assert p not in self.avail
         self.avail.add(p)
 
-    def negamax(self, prune=True):
+    def eval_side(self, onmove):
+        choices = self.taken[onmove]
+        wins = 0
+        for c in choose(choices, self.k - 1):
+            p = self.t - sum(c)
+            if p > 0 and p in self.avail:
+                wins += 1
+        return wins
+
+    def eval(self):
+        me = self.eval_side(self.onmove)
+        them = self.eval_side(1 - self.onmove)
+        return me - them
+
+    def negamax(self, prune=True, depth=None):
         # Draw if no pieces remain
         if len(self.avail) == 0:
             return (0, None)
+        if depth == 0:
+            return (self.eval(), None)
         onmove = self.onmove
         result = -self.winval
         move = None
+        if depth != None:
+            depth -= 1
         for m in set(self.avail):
             self.move(m)
             if self.won(onmove):
                 r = self.winval
             else:
-                r, _ = self.negamax(prune=prune)
+                r, _ = self.negamax(prune=prune, depth=depth)
                 r = -r
             self.unmove(m)
             if r >= result:
@@ -78,13 +96,18 @@ class State(object):
         assert move != None
         return (result, move)
 
-def play(game):
+def play(game, depth=None):
     while True:
-        r, m = game.negamax()
-        print(r, m)
+        r, m = game.negamax(depth=depth)
+        if game.onmove == 0:
+            side = "x"
+        else:
+            side = "o"
+        print(side, m, "({})".format(r))
         if m == None:
             break
         game.move(m)
 
 game = State(9, 3, 15)
-print(game.negamax())
+print(game.negamax(depth=4))
+play(game, depth=4)
