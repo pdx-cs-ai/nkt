@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+import argparse
+
 def choose(s, n):
     if n < 0:
         return
@@ -96,9 +98,9 @@ class State(object):
         assert move != None
         return (result, move)
 
-def play(game, depth=None):
+def play(game, **args):
     while True:
-        r, m = game.negamax(depth=depth)
+        r, m = game.negamax(**args)
         if game.onmove == 0:
             side = "x"
         else:
@@ -108,6 +110,24 @@ def play(game, depth=None):
             break
         game.move(m)
 
-game = State(9, 3, 15)
-print(game.negamax(depth=4))
-play(game, depth=4)
+
+# Process arguments.
+parser = argparse.ArgumentParser(description='Play NKT.')
+parser.add_argument('-n', type=int,
+                    default=9, help='number of tiles')
+parser.add_argument('-k', type=int,
+                    default=3, help='number of tiles in win')
+parser.add_argument('-t', type=int,
+                    default=15, help='target sum')
+parser.add_argument('--depth', '-d', type=int,
+                    default=None, help='maximum search depth')
+parser.add_argument('--unpruned', '-u',
+                    action="store_false", help='prune on wins')
+parser.add_argument('--game', '-g',
+                    action="store_true", help='play out a game')
+args = parser.parse_args()
+
+game = State(args.n, args.k, args.t)
+print(game.negamax(prune=args.unpruned, depth=args.depth))
+if args.game:
+    play(game, prune=args.unpruned, depth=args.depth)
