@@ -171,8 +171,11 @@ parser.add_argument('--game', '-g',
 args = parser.parse_args()
 
 # Run the search(es).
+def go(game, **argv):
+    r = game.negamax(**argv)
+    print(r)
+    if args.game:
+        play(game, r, **argv)
+
 game = State(args.n, args.k, args.t)
-r = game.negamax(prune=args.unpruned, depth=args.depth)
-print(r)
-if args.game:
-    play(game, r, prune=args.unpruned, depth=args.depth)
+go(game, prune=args.unpruned, depth=args.depth)
