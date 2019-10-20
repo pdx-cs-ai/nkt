@@ -18,8 +18,9 @@ tiles in a win (default 3), and the total must be T (default
 This solver uses depth-first negamax search in the normal
 way to select an optimal move and determine game value in an
 arbitrary legal state of NKT. Options include early win
-pruning and depth-limited search with a heuristic evaluator.
-The solver will optionally play out a game.
+pruning, depth-limited search with a heuristic evaluator,
+and alpha-beta pruning. The solver will optionally play out
+a game.
 
 Say `python3 nkt.py -h` for program arguments.
 

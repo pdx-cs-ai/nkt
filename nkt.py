@@ -96,7 +96,7 @@ class State(object):
     # early when an immediate win is found. If the depth is
     # set to some non-negative integer, it will be used as a
     # search depth limit.
-    def negamax(self, prune=True, depth=None):
+    def negamax(self, prune=True, depth=None, ab=None):
         # Draw if no pieces remain
         if len(self.avail) == 0:
             return (0, None)
@@ -110,6 +110,8 @@ class State(object):
         move = None
         if depth != None:
             depth -= 1
+        if ab != None:
+            alpha, beta = ab
         for m in set(self.avail):
             # Do-undo.
             self.move(m)
@@ -118,7 +120,9 @@ class State(object):
                 r = self.winval
             else:
                 # Recursively search for opponent value.
-                r, _ = self.negamax(prune=prune, depth=depth)
+                if ab != None:
+                    ab = (-beta, min(-result, -alpha))
+                r, _ = self.negamax(prune=prune, depth=depth, ab=ab)
                 r = -r
             self.unmove(m)
             # Update best result found.
@@ -127,6 +131,8 @@ class State(object):
                 result = r
                 if prune and result == self.winval:
                     return (result, move)
+                if ab != None and result >= beta:
+                    return (result, None)
         # Return winning score and move.
         assert move != None
         return (result, move)
@@ -168,7 +174,11 @@ parser.add_argument('--unpruned', '-u',
                     action="store_false", help='prune on wins')
 parser.add_argument('--game', '-g',
                     action="store_true", help='play out a game')
+parser.add_argument('--ab', '-a',
+                    action="store_true", help='alpha-beta prune')
 args = parser.parse_args()
+
+
 
 # Run the search(es).
 def go(game, **argv):
@@ -178,4 +188,9 @@ def go(game, **argv):
         play(game, r, **argv)
 
 game = State(args.n, args.k, args.t)
-go(game, prune=args.unpruned, depth=args.depth)
+# Set up alpha-beta if needed.
+if args.ab:
+    ab = (-game.winval, game.winval)
+else:
+    ab = None
+go(game, prune=args.unpruned, depth=args.depth, ab=ab)
