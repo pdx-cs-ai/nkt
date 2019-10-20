@@ -18,9 +18,12 @@ def choose(s, n):
         yield u
 
 class State(object):
-    def __init__(self):
+    def __init__(self, n, k, t):
+        self.n = n
+        self.k = k
+        self.t = t
         self.onmove = 0
-        self.avail = set(range(1, 10))
+        self.avail = set(range(1, n+1))
         self.taken = [set() for _ in range(2)]
 
     def __str__(self):
@@ -30,8 +33,8 @@ class State(object):
 
     def won(self, side):
         taken = self.taken[side]
-        for combo in choose(taken, 3):
-            if sum(combo) == 15:
+        for combo in choose(taken, self.k):
+            if sum(combo) == self.t:
                 return True
         return False
 
@@ -74,8 +77,7 @@ class State(object):
         assert move != None
         return (result, move)
 
-def play():
-    game = State()
+def play(game):
     while True:
         r, m = game.negamax()
         print(r, m)
@@ -83,5 +85,5 @@ def play():
             break
         game.move(m)
 
-game = State()
-print(game.negamax(prune=False))
+game = State(9, 3, 15)
+print(game.negamax())
