@@ -117,22 +117,22 @@ class State(object):
             self.move(m)
             if self.won(onmove):
                 # Do not search further on win position.
-                r = self.winval
-            else:
-                # Recursively search for opponent value.
-                if ab != None:
-                    ab = (-beta, min(-result, -alpha))
-                r, _ = self.negamax(prune=prune, depth=depth, ab=ab)
-                r = -r
+                self.unmove(m)
+                return (self.winval, m)
+            # Recursively search for opponent value.
+            if ab != None:
+                ab = (-beta, min(-result, -alpha))
+            r, _ = self.negamax(prune=prune, depth=depth, ab=ab)
+            r = -r
             self.unmove(m)
             # Update best result found.
             if r >= result:
                 move = m
                 result = r
+                if ab != None and result > beta:
+                    return (result, None)
                 if prune and result == self.winval:
                     return (result, move)
-                if ab != None and result >= beta:
-                    return (result, None)
         # Return winning score and move.
         assert move != None
         return (result, move)
